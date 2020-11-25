@@ -16,7 +16,7 @@ module Cli =
 
 
   let isValidMonth s =
-    Regex(@"^[0-9]{4}-(0[1-9]|1[1-2])$").Match(s).Success
+    Regex(@"^[0-9]{4}-(0[1-9]|1[0-2])$").Match(s).Success
 
 
   let isValidAwsProfile s = Regex(@"^.*$").Match(s).Success
@@ -25,7 +25,7 @@ module Cli =
   let isValidAwsRegion s = Regex(@"^.*$").Match(s).Success
 
 
-  [<StructuredFormatDisplay("Month {Month}")>]
+  [<StructuredFormatDisplay("Month: {Month} :: AwsProfile: {AwsProfile} :: AwsRegion: {AwsRegion}")>]
   type CommandLineOptions =
     { Month: string
       AwsProfile: string

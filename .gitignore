@@ -10,5 +10,7 @@
 **/env.json
 **/serverless.yml
 
+tmp/**
+
 .fake
 .ionide
