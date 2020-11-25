@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Compile Include="Logging.fs" />
+    <Compile Include="AwsUtils.fs" />
     <Compile Include="S3v2.fs" />
     <Compile Include="Cli.fs" />
     <Compile Include="Main.fs" />
