@@ -3,17 +3,29 @@ namespace S3logs
 // internal
 open Cli
 open Logging
+open S3v2
 
 //external
 open System
 open Amazon
 open Amazon.S3
-open S3v2
 open System.Text.RegularExpressions
 open System.IO
 open System.IO.Compression
+open System.Collections.Generic
 
 module Main =
+
+
+  type FileState =
+    | NotStarted
+    | Downloaded
+    | Unzipped
+    | Merged
+    | Uploaded
+    | Done
+
+  let FileStates = new Dictionary<string, FileState>()
 
 
   let loggerMain =
@@ -82,19 +94,22 @@ module Main =
         let fileListMaybe =
           listFiles s3v2 bucket folder
           |> Option.map (List.filter (fun x -> Regex(pattern).Match(x).Success))
+          |> Option.map (List.iter (fun f -> FileStates.Add(f, NotStarted)))
 
-        let downloadedFilesMaybe =
-          match fileListMaybe with
-          | Some x -> List.map (downloadFile s3v2 bucket) x
-          | None -> []
+        loggerMain.LogInfo <| sprintf "%A" fileListMaybe
 
-        let unzipFiles =
-          downloadedFilesMaybe
-          |> List.filter Option.isSome
-          |> List.map (fun x -> x.Value)
-          |> List.iter (fun y -> ZipFile.ExtractToDirectory(y, "tmp/"))
+        // let downloadedFilesMaybe =
+        //   match fileListMaybe with
+        //   | Some x -> List.map (downloadFile s3v2 bucket) x
+        //   | None -> []
 
-        loggerMain.LogInfo <| sprintf "%A" unzipFiles
+        // let unzipFiles =
+        //   downloadedFilesMaybe
+        //   |> List.filter Option.isSome
+        //   |> List.map (fun x -> x.Value)
+        //   |> List.iter (fun y -> ZipFile.ExtractToDirectory(y, "tmp/"))
+
+        // loggerMain.LogInfo <| sprintf "%A" unzipFiles
 
 
         // unzip files
