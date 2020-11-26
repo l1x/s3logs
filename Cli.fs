@@ -16,7 +16,7 @@ module Cli =
 
 
   let isValidMonth s =
-    Regex(@"^[0-9]{4}-(0[1-9]|1[0-2])$").Match(s).Success
+    Regex(@"^[0-9]{4}\-(0?[1-9]|1[012])$").Match(s).Success
 
 
   let isValidAwsProfile s = Regex(@"^.*$").Match(s).Success
