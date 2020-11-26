@@ -9,6 +9,8 @@
 
   <ItemGroup>
     <Compile Include="Logging.fs" />
+    <Compile Include="FileState.fs" />
+    <Compile Include="Parquet.fs" />
     <Compile Include="AwsUtils.fs" />
     <Compile Include="S3v2.fs" />
     <Compile Include="Cli.fs" />
@@ -19,6 +21,9 @@
 
     <PackageReference Include="AWSSDK.S3" Version="3.5.4.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Deedle" Version="2.3.0" />
+    <PackageReference Include="Parquet.Net" Version="3.7.7" />
+
 
   </ItemGroup>
 

@@ -14,6 +14,13 @@ module Cli =
   let loggerCli =
     Logger.CreateLogger "Cli" "info" (fun _ -> DateTime.Now)
 
+  let fromStringToFileState s =
+    match s with
+    | "not-started" -> NotStarted
+    | "downloaded" -> Downloaded
+    | "unzipped" -> Unzipped
+    | "merged" -> Merged
+    | _ -> ParsingError
 
   let isValidMonth s =
     Regex(@"^[0-9]{4}\-(0?[1-9]|1[012])$").Match(s).Success
@@ -25,11 +32,12 @@ module Cli =
   let isValidAwsRegion s = Regex(@"^.*$").Match(s).Success
 
 
-  [<StructuredFormatDisplay("Month: {Month} :: AwsProfile: {AwsProfile} :: AwsRegion: {AwsRegion}")>]
+  [<StructuredFormatDisplay("Month: {Month} :: AwsProfile: {AwsProfile} :: AwsRegion: {AwsRegion} :: State: {State}")>]
   type CommandLineOptions =
     { Month: string
       AwsProfile: string
-      AwsRegion: string }
+      AwsRegion: string
+      State: FileState }
 
 
   // create the "helper" recursive function
@@ -97,6 +105,29 @@ module Cli =
             Environment.Exit 1
             parseCommandLineRec xs optionsSoFar // never reach
 
+    // match state
+    | "--state" :: xs ->
+        match xs with
+        | state :: xss ->
+            match fromStringToFileState state with
+            | NotStarted
+            | Downloaded
+            | Unzipped
+            | Merged ->
+                parseCommandLineRec
+                  xss
+                  { optionsSoFar with
+                      State = (fromStringToFileState state) }
+            | _ ->
+                loggerCli.LogError(String.Format("Unsupported state: {0}", state))
+                Environment.Exit 1
+                parseCommandLineRec xss optionsSoFar // never reach
+
+        | [] ->
+            loggerCli.LogError(String.Format("State cannot be empty"))
+            Environment.Exit 1
+            parseCommandLineRec xs optionsSoFar // never reach
+
 
     // handle unrecognized option and keep looping
     | x :: xs ->
@@ -109,7 +140,8 @@ module Cli =
     let defaultOptions =
       { Month = "2020-01"
         AwsProfile = "not-really"
-        AwsRegion = "eu-west-1" }
+        AwsRegion = "eu-west-1"
+        State = NotStarted }
     // call the recursive one with the initial options
     parseCommandLineRec args defaultOptions
 
