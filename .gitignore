@@ -14,3 +14,6 @@ tmp/**
 
 .fake
 .ionide
+**/.ipynb_checkpoints/
+*.jar
+
