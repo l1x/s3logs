@@ -32,174 +32,226 @@ open System
 
 module ParquetCsv =
 
-  let egy = 1
-
-// type ParquetColumns =
-//   { DateTimes: List<string>
-//     EdgeLocations: List<string>
-//     ScBytess: List<int>
-//     CIps: List<string>
-//     CsMethods: List<string>
-//     CsHosts: List<string>
-//     CsUriStems: List<string>
-//     ScStatuses: List<string>
-//     CsReferers: List<string>
-//     CsUserAgents: List<string>
-//     CsUriQueries: List<string>
-//     CsCookies: List<string>
-//     XEdgeResultTypes: List<string>
-//     XEdgeRequestIds: List<string>
-//     XHostHeaders: List<string>
-//     CsProtocols: List<string>
-//     CsBytes: List<string>
-//     TimeTaken: List<string>
-//     XForwardedFor: List<string>
-//     SslProtocol: List<string>
-//     SslCipher: List<string>
-//     XEdgeResponseResultType: List<string>
-//     CsProtocolVersion: List<string>
-//     FleStatus: List<string>
-//     FleEncryptedFields: List<string>
-//     CPort: List<string>
-//     TimeToFirstByte: List<string>
-//     XEdgeDetailedResultType: List<string>
-//     ScContentType: List<string>
-//     ScContentLen: List<string>
-//     ScRangeStart: List<string>
-//     ScRangeEnd: List<string> }
+  type ParquetColumns =
+    { DateTimeColumn: List<string>
+      EdgeLocationColumn: List<string>
+      ScBytesColumn: List<int>
+      CIpColumn: List<string>
+      CsMethodColumn: List<string>
+      CsHostColumn: List<string>
+      CsUriStemColumn: List<string>
+      ScStatusColumn: List<string>
+      CsRefererColumn: List<string>
+      CsUserAgentColumn: List<string>
+      CsUriQueryColumn: List<string>
+      CsCookieColumn: List<string>
+      XEdgeResultTypeColumn: List<string>
+      XEdgeRequestIdColumn: List<string>
+      XHostHeaderColumn: List<string>
+      CsProtocolColumn: List<string>
+      CsByteColumn: List<string>
+      TimeTakenColumn: List<string>
+      XForwardedForColumn: List<string>
+      SslProtocolColumn: List<string>
+      SslCipherColumn: List<string>
+      XEdgeResponseResultTypeColumn: List<string>
+      CsProtocolVersionColumn: List<string>
+      FleStatusColumn: List<string>
+      FleEncryptedFieldsColumn: List<string>
+      CPortColumn: List<string>
+      TimeToFirstByteColumn: List<string>
+      XEdgeDetailedResultTypeColumn: List<string>
+      ScContentTypeColumn: List<string>
+      ScContentLenColumn: List<string>
+      ScRangeStartColumn: List<string>
+      ScRangeEndColumn: List<string> }
 
 
-
-// type ParquetFieldMap =
-//   { DateTime: DataField
-//     EdgeLocation: DataField
-//     ScBytes: DataField
-//     CIp: DataField
-//     CsMethod: DataField
-//     CsHost: DataField
-//     CsUriStem: DataField
-//     ScStatus: DataField
-//     CsReferer: DataField
-//     CsUserAgent: DataField
-//     CsUriQuery: DataField
-//     CsCookie: DataField
-//     XEdgeResultType: DataField
-//     XEdgeRequestId: DataField
-//     XHostHeader: DataField
-//     CsProtocol: DataField
-//     CsBytes: DataField
-//     TimeTaken: DataField
-//     XForwardedFor: DataField
-//     SslProtocol: DataField
-//     SslCipher: DataField
-//     XEdgeResponseResultType: DataField
-//     CsProtocolVersion: DataField
-//     FleStatus: DataField
-//     FleEncryptedFields: DataField
-//     CPort: DataField
-//     TimeToFirstByte: DataField
-//     XEdgeDetailedResultType: DataField
-//     ScContentType: DataField
-//     ScContentLen: DataField
-//     ScRangeStart: DataField
-//     ScRangeEnd: DataField }
-
-
-// let parquetFieldMap: ParquetFieldMap =
-//   { DateTime = DataField("DateTime", DataType.String)
-//     EdgeLocation = DataField("EdgeLocation", DataType.String)
-//     ScBytes = DataField("ScBytes", DataType.String)
-//     CIp = DataField("CIp", DataType.String)
-//     CsMethod = DataField("CsMethod", DataType.String)
-//     CsHost = DataField("CsHost", DataType.String)
-//     CsUriStem = DataField("CsUriStem", DataType.String)
-//     ScStatus = DataField("ScStatus", DataType.String)
-//     CsReferer = DataField("CsReferer", DataType.String)
-//     CsUserAgent = DataField("CsUserAgent", DataType.String)
-//     CsUriQuery = DataField("CsUriQuery", DataType.String)
-//     CsCookie = DataField("CsCookie", DataType.String)
-//     XEdgeResultType = DataField("XEdgeResultType", DataType.String)
-//     XEdgeRequestId = DataField("XEdgeRequestId", DataType.String)
-//     XHostHeader = DataField("XHostHeader", DataType.String)
-//     CsProtocol = DataField("CsProtocol", DataType.String)
-//     CsBytes = DataField("CsBytes", DataType.String)
-//     TimeTaken = DataField("TimeTaken", DataType.String)
-//     XForwardedFor = DataField("XForwardedFor", DataType.String)
-//     SslProtocol = DataField("SslProtocol", DataType.String)
-//     SslCipher = DataField("SslCipher", DataType.String)
-//     XEdgeResponseResultType = DataField("XEdgeResponseResultType", DataType.String)
-//     CsProtocolVersion = DataField("CsProtocolVersion", DataType.String)
-//     FleStatus = DataField("FleStatus", DataType.String)
-//     FleEncryptedFields = DataField("FleEncryptedFields", DataType.String)
-//     CPort = DataField("CPort", DataType.String)
-//     TimeToFirstByte = DataField("TimeToFirstByte", DataType.String)
-//     XEdgeDetailedResultType = DataField("XEdgeDetailedResultType", DataType.String)
-//     ScContentType = DataField("ScContentType", DataType.String)
-//     ScContentLen = DataField("ScContentLen", DataType.String)
-//     ScRangeStart = DataField("ScRangeStart", DataType.String)
-//     ScRangeEnd = DataField("ScRangeEnd", DataType.String) }
+  type ParquetFieldMap =
+    { DateTime: DataField
+      EdgeLocation: DataField
+      ScBytes: DataField
+      CIp: DataField
+      CsMethod: DataField
+      CsHost: DataField
+      CsUriStem: DataField
+      ScStatus: DataField
+      CsReferer: DataField
+      CsUserAgent: DataField
+      CsUriQuery: DataField
+      CsCookie: DataField
+      XEdgeResultType: DataField
+      XEdgeRequestId: DataField
+      XHostHeader: DataField
+      CsProtocol: DataField
+      CsBytes: DataField
+      TimeTaken: DataField
+      XForwardedFor: DataField
+      SslProtocol: DataField
+      SslCipher: DataField
+      XEdgeResponseResultType: DataField
+      CsProtocolVersion: DataField
+      FleStatus: DataField
+      FleEncryptedFields: DataField
+      CPort: DataField
+      TimeToFirstByte: DataField
+      XEdgeDetailedResultType: DataField
+      ScContentType: DataField
+      ScContentLen: DataField
+      ScRangeStart: DataField
+      ScRangeEnd: DataField }
 
 
-// let parquetSchema =
-//   Schema
-//     (parquetFieldMap.DateTime,
-//      parquetFieldMap.EdgeLocation,
-//      parquetFieldMap.ScBytes,
-//      parquetFieldMap.CIp,
-//      parquetFieldMap.CsMethod,
-//      parquetFieldMap.CsHost,
-//      parquetFieldMap.CsUriStem,
-//      parquetFieldMap.ScStatus,
-//      parquetFieldMap.CsReferer,
-//      parquetFieldMap.CsUserAgent,
-//      parquetFieldMap.CsUriQuery,
-//      parquetFieldMap.CsCookie,
-//      parquetFieldMap.XEdgeResultType,
-//      parquetFieldMap.XEdgeRequestId,
-//      parquetFieldMap.XHostHeader,
-//      parquetFieldMap.CsProtocol,
-//      parquetFieldMap.CsBytes,
-//      parquetFieldMap.TimeTaken,
-//      parquetFieldMap.XForwardedFor,
-//      parquetFieldMap.SslProtocol,
-//      parquetFieldMap.SslCipher,
-//      parquetFieldMap.XEdgeResponseResultType,
-//      parquetFieldMap.CsProtocolVersion,
-//      parquetFieldMap.FleStatus,
-//      parquetFieldMap.FleEncryptedFields,
-//      parquetFieldMap.CPort,
-//      parquetFieldMap.TimeToFirstByte,
-//      parquetFieldMap.XEdgeDetailedResultType,
-//      parquetFieldMap.ScContentType,
-//      parquetFieldMap.ScContentLen,
-//      parquetFieldMap.ScRangeStart,
-//      parquetFieldMap.ScRangeEnd)
+  let parquetFieldMap: ParquetFieldMap =
+    { DateTime = DataField("DateTime", DataType.String)
+      EdgeLocation = DataField("EdgeLocation", DataType.String)
+      ScBytes = DataField("ScBytes", DataType.String)
+      CIp = DataField("CIp", DataType.String)
+      CsMethod = DataField("CsMethod", DataType.String)
+      CsHost = DataField("CsHost", DataType.String)
 
-// let createParquetColumns () = { DateTimes = new List<string>() }
+      CsUriStem = DataField("CsUriStem", DataType.String)
+      ScStatus = DataField("ScStatus", DataType.String)
+      CsReferer = DataField("CsReferer", DataType.String)
+      CsUserAgent = DataField("CsUserAgent", DataType.String)
+      CsUriQuery = DataField("CsUriQuery", DataType.String)
+      CsCookie = DataField("CsCookie", DataType.String)
 
+      XEdgeResultType = DataField("XEdgeResultType", DataType.String)
+      XEdgeRequestId = DataField("XEdgeRequestId", DataType.String)
+      XHostHeader = DataField("XHostHeader", DataType.String)
+      CsProtocol = DataField("CsProtocol", DataType.String)
+      CsBytes = DataField("CsBytes", DataType.String)
+      TimeTaken = DataField("TimeTaken", DataType.String)
 
-// let createNewParquetWriter (stream: MemoryStream) =
-//   let parquetWriter = new ParquetWriter(parquetSchema, stream)
-//   parquetWriter.CompressionMethod <- CompressionMethod.Gzip
-//   parquetWriter
+      XForwardedFor = DataField("XForwardedFor", DataType.String)
+      SslProtocol = DataField("SslProtocol", DataType.String)
+      SslCipher = DataField("SslCipher", DataType.String)
+      XEdgeResponseResultType = DataField("XEdgeResponseResultType", DataType.String)
+      CsProtocolVersion = DataField("CsProtocolVersion", DataType.String)
+      FleStatus = DataField("FleStatus", DataType.String)
+      FleEncryptedFields = DataField("FleEncryptedFields", DataType.String)
+      CPort = DataField("CPort", DataType.String)
+      TimeToFirstByte = DataField("TimeToFirstByte", DataType.String)
+      XEdgeDetailedResultType = DataField("XEdgeDetailedResultType", DataType.String)
+      ScContentType = DataField("ScContentType", DataType.String)
+      ScContentLen = DataField("ScContentLen", DataType.String)
+      ScRangeStart = DataField("ScRangeStart", DataType.String)
+      ScRangeEnd = DataField("ScRangeEnd", DataType.String) }
 
 
-// let fillParquetColumns (parquetColumns: ParquetColumns) =
-//   let mutable arr: byte [] = null
-//   (let stream = new MemoryStream()
-//    let parquetWriter = createNewParquetWriter (stream)
-//    let rowGroup = parquetWriter.CreateRowGroup()
-//    rowGroup.WriteColumn(DataColumn(parquetFieldMap.UtilityProviderId, parquetColumns.UtilityProviderIds.ToArray()))
-//    rowGroup.WriteColumn(DataColumn(parquetFieldMap.PodName, parquetColumns.PodNames.ToArray()))
-//    rowGroup.WriteColumn(DataColumn(parquetFieldMap.VariableName, parquetColumns.VariableNames.ToArray()))
-//    rowGroup.WriteColumn(DataColumn(parquetFieldMap.Timestamp, parquetColumns.Timestamps.ToArray()))
-//    rowGroup.WriteColumn(DataColumn(parquetFieldMap.Value, parquetColumns.Values.ToArray()))
-//    rowGroup.WriteColumn(DataColumn(parquetFieldMap.State, parquetColumns.States.ToArray()))
-//    rowGroup.Dispose()
-//    parquetWriter.Dispose()
-//    arr <- stream.ToArray()
-//    stream.Dispose())
-//   arr
+  let parquetSchema =
+    Schema
+      (parquetFieldMap.DateTime,
+       parquetFieldMap.EdgeLocation,
+       parquetFieldMap.ScBytes,
+       parquetFieldMap.CIp,
+       parquetFieldMap.CsMethod,
+       parquetFieldMap.CsHost,
+       parquetFieldMap.CsUriStem,
+       parquetFieldMap.ScStatus,
+       parquetFieldMap.CsReferer,
+       parquetFieldMap.CsUserAgent,
+       parquetFieldMap.CsUriQuery,
+       parquetFieldMap.CsCookie,
+       parquetFieldMap.XEdgeResultType,
+       parquetFieldMap.XEdgeRequestId,
+       parquetFieldMap.XHostHeader,
+       parquetFieldMap.CsProtocol,
+       parquetFieldMap.CsBytes,
+       parquetFieldMap.TimeTaken,
+       parquetFieldMap.XForwardedFor,
+       parquetFieldMap.SslProtocol,
+       parquetFieldMap.SslCipher,
+       parquetFieldMap.XEdgeResponseResultType,
+       parquetFieldMap.CsProtocolVersion,
+       parquetFieldMap.FleStatus,
+       parquetFieldMap.FleEncryptedFields,
+       parquetFieldMap.CPort,
+       parquetFieldMap.TimeToFirstByte,
+       parquetFieldMap.XEdgeDetailedResultType,
+       parquetFieldMap.ScContentType,
+       parquetFieldMap.ScContentLen,
+       parquetFieldMap.ScRangeStart,
+       parquetFieldMap.ScRangeEnd)
+
+  let createParquetColumns () =
+    { DateTimeColumn = new List<string>()
+      EdgeLocationColumn = new List<string>()
+      ScBytesColumn = new List<int>()
+      CIpColumn = new List<string>()
+      CsMethodColumn = new List<string>()
+      CsHostColumn = new List<string>()
+      CsUriStemColumn = new List<string>()
+      ScStatusColumn = new List<string>()
+      CsRefererColumn = new List<string>()
+      CsUserAgentColumn = new List<string>()
+      CsUriQueryColumn = new List<string>()
+      CsCookieColumn = new List<string>()
+      XEdgeResultTypeColumn = new List<string>()
+      XEdgeRequestIdColumn = new List<string>()
+      XHostHeaderColumn = new List<string>()
+      CsProtocolColumn = new List<string>()
+      CsBytesColumn = new List<string>()
+      TimeTakenColumn = new List<string>()
+      XForwardedForColumn = new List<string>()
+      SslProtocolColumn = new List<string>()
+      SslCipherColumn = new List<string>()
+      XEdgeResponseResultTypeColumn = new List<string>()
+      CsProtocolVersionColumn = new List<string>()
+      FleStatusColumn = new List<string>()
+      FleEncryptedFieldsColumn = new List<string>()
+      CPortColumn = new List<string>()
+      TimeToFirstByteColumn = new List<string>()
+      XEdgeDetailedResultTypeColumn = new List<string>()
+      ScContentTypeColumn = new List<string>()
+      ScContentLenColumn = new List<string>()
+      ScRangeStartColumn = new List<string>()
+      ScRangeEndColumn = new List<string>() }
+
+
+  let createNewParquetWriter (stream: MemoryStream) =
+    let parquetWriter = new ParquetWriter(parquetSchema, stream)
+    parquetWriter.CompressionMethod <- CompressionMethod.Gzip
+    parquetWriter
+
+
+  let fillParquetColumns (parquetColumns: ParquetColumns) =
+    let mutable arr: byte [] = null
+    (let stream = new MemoryStream()
+     let parquetWriter = createNewParquetWriter (stream)
+     let rowGroup = parquetWriter.CreateRowGroup()
+
+     rowGroup.WriteColumn(DataColumn(parquetFieldMap.DateTime, parquetColumns.DateTimeColumn.ToArray()))
+     rowGroup.WriteColumn(DataColumn(parquetFieldMap.EdgeLocation, parquetColumns.EdgeLocationColumn.ToArray()))
+     rowGroup.WriteColumn(DataColumn(parquetFieldMap.ScBytes, parquetColumns.ScBytesColumn.ToArray()))
+     rowGroup.WriteColumn(DataColumn(parquetFieldMap.CIp, parquetColumns.CIpColumn.ToArray()))
+     rowGroup.WriteColumn(DataColumn(parquetFieldMap.CsMethod, parquetColumns.CsMethodColumn.ToArray()))
+     rowGroup.WriteColumn(DataColumn(parquetFieldMap.CsHost, parquetColumns.CsHostColumn.ToArray()))
+
+     rowGroup.WriteColumn(DataColumn(parquetFieldMap.CsUriStem, parquetColumns.CsUriStemColumn.ToArray()))
+     rowGroup.WriteColumn(DataColumn(parquetFieldMap.ScStatus, parquetColumns.ScStatusColumn.ToArray()))
+     rowGroup.WriteColumn(DataColumn(parquetFieldMap.CsReferer, parquetColumns.CsRefererColumn.ToArray()))
+     rowGroup.WriteColumn(DataColumn(parquetFieldMap.CsUserAgent, parquetColumns.CsUserAgentColumn.ToArray()))
+     rowGroup.WriteColumn(DataColumn(parquetFieldMap.CsUriQuery, parquetColumns.CsUriQueryColumn.ToArray()))
+     rowGroup.WriteColumn(DataColumn(parquetFieldMap.CsCookie, parquetColumns.CsCookieColumn.ToArray()))
+
+     rowGroup.WriteColumn(DataColumn(parquetFieldMap.XEdgeResultType, parquetColumns.XEdgeResultTypeColumn.ToArray()))
+     rowGroup.WriteColumn(DataColumn(parquetFieldMap.XEdgeRequestId, parquetColumns.XEdgeRequestIdColumn.ToArray()))
+     rowGroup.WriteColumn(DataColumn(parquetFieldMap.XHostHeader, parquetColumns.XHostHeaderColumn.ToArray()))
+     rowGroup.WriteColumn(DataColumn(parquetFieldMap.CsProtocol, parquetColumns.CsProtocolColumn.ToArray()))
+     rowGroup.WriteColumn(DataColumn(parquetFieldMap.CsBytes, parquetColumns.CsBytesColumn.ToArray()))
+     rowGroup.WriteColumn(DataColumn(parquetFieldMap.TimeTaken, parquetColumns.CsCookieColumn.ToArray()))
+
+
+
+
+
+     rowGroup.Dispose()
+     parquetWriter.Dispose()
+     arr <- stream.ToArray()
+     stream.Dispose())
+    arr
 
 // let csvToParquetBytes (utilityProviderUuid) (rows: seq<CsvCommon.Row>) =
 

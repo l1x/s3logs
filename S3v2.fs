@@ -14,46 +14,46 @@ open Newtonsoft.Json
 module S3v2 =
 
   /// S3ReadError - common error handling for read operations (get, head, list)
-
   type S3ReadError =
     | NotFound of key: string
     | S3ReadPermissionDenied of keyOrPrefix: string
     | S3ReadException of keyOrPrefix: string * isRecoverable: bool * httpStatus: int option * ex: Exception option
 
-  /// S3HeadReturn
 
+  /// S3HeadReturn
   type S3HeadSuccess = S3HeadSuccess of key: string
 
   type S3HeadReturn = Result<S3HeadSuccess, S3ReadError>
 
-  /// S3GetReturn
 
-  type S3GetSuccess = S3GetSuccess of key: string * value: byte []
+  /// S3GetBytesReturn
+  type S3GetBytesSuccess = S3GetBytesSuccess of key: string * value: byte []
 
-  type S3GetReturn = Result<S3GetSuccess, S3ReadError>
+  type S3GetBytesReturn = Result<S3GetBytesSuccess, S3ReadError>
+
+
+  /// S3GetStreamReturn
+  type S3GetStreamSuccess = S3GetStreamSuccess of key: string * value: Stream
+
+  type S3GetStreamReturn = Result<S3GetStreamSuccess, S3ReadError>
+
 
   /// S3ListReturn
-
   type S3ListSuccess = S3ListSuccess of prefix: string * objects: List<S3Object>
 
   type S3ListReturn = Result<S3ListSuccess, S3ReadError>
 
-  /// S3ReadError - common error handling for read operations (get, head, list)
 
+  /// S3ReadError - common error handling for read operations (get, head, list)
   type S3WriteError =
     | S3WritePermissionDenied of keyOrPrefix: string
     | S3WriteException of keyOrPrefix: string * isRecoverable: bool * httpStatus: int option * ex: Exception option
 
-  /// S3DeleteReturn
 
+  /// S3DeleteReturn
   type S3DeleteSuccess = S3DeleteSuccess of key: string
 
   type S3DeleteReturn = Result<S3DeleteSuccess, S3WriteError>
-
-
-  type S3TaskType =
-    | GetObject of Task<GetObjectResponse>
-    | GetMetadata of Task<GetObjectMetadataResponse>
 
   type S3v2(awsS3Client: AmazonS3Client, log: string -> unit) =
 
@@ -128,10 +128,10 @@ module S3v2 =
 
 
     //
-    //  READ - GET - ASYNC
+    //  READ - GET - ASYNC - STREAM
     //
 
-    member this.GetS3ObjectBytesAsync (bucket: string) (key: string): Async<S3GetReturn> =
+    member this.GetS3ObjectStreamAsync (bucket: string) (key: string): Async<S3GetStreamReturn> =
       async {
         try
           let! ct = Async.CancellationToken
@@ -144,7 +144,31 @@ module S3v2 =
           let! result = task |> Async.AwaitTask
 
           match result.HttpStatusCode with
-          | HttpStatusCode.OK -> return Ok(S3GetSuccess(key, (readAllBytes result.ResponseStream)))
+          | HttpStatusCode.OK -> return Ok(S3GetStreamSuccess(key, result.ResponseStream))
+          | httpStatus -> return Error(S3ReadException(key, false, (Some(int httpStatus)), None))
+
+        with ex -> return Error(handleReadException key ex)
+      }
+
+
+    //
+    //  READ - GET - ASYNC
+    //
+
+    member this.GetS3ObjectBytesAsync (bucket: string) (key: string): Async<S3GetBytesReturn> =
+      async {
+        try
+          let! ct = Async.CancellationToken
+
+          let request =
+            GetObjectRequest(BucketName = bucket, Key = key)
+
+          let task = awsS3Client.GetObjectAsync(request, ct)
+
+          let! result = task |> Async.AwaitTask
+
+          match result.HttpStatusCode with
+          | HttpStatusCode.OK -> return Ok(S3GetBytesSuccess(key, (readAllBytes result.ResponseStream)))
           | httpStatus -> return Error(S3ReadException(key, false, (Some(int httpStatus)), None))
 
         with ex -> return Error(handleReadException key ex)
@@ -154,7 +178,7 @@ module S3v2 =
     //  READ - GET - SYNC
     //
 
-    member this.GetS3ObjectBytes (bucket: string) (key: string): S3GetReturn =
+    member this.GetS3ObjectBytes (bucket: string) (key: string): S3GetBytesReturn =
       this.GetS3ObjectBytesAsync bucket key
       |> Async.RunSynchronously
 
@@ -238,7 +262,7 @@ module S3v2 =
       let region = RegionEndpoint.GetBySystemName(region)
 
       let config =
-        AmazonS3Config(RegionEndpoint = region, Timeout = Nullable(TimeSpan.FromMilliseconds(500.0)))
+        AmazonS3Config(RegionEndpoint = region, Timeout = Nullable(TimeSpan.FromMilliseconds(2000.0)))
 
       let client = new AmazonS3Client(config)
       log
