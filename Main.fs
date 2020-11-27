@@ -128,8 +128,8 @@ module Main =
       |> Seq.filter (startsWithHash >> not)
       |> Seq.map (splitLineWithTab >> processLine)
 
-
-
+    let parquetBytes = ParquetLogs.processLogRows lines
+    File.WriteAllBytes((sprintf "%s.parquet" mergedFile), parquetBytes)
     loggerMain.LogInfo <| sprintf "%A" lines
     ()
 

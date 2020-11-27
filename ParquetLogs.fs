@@ -8,6 +8,7 @@ open Parquet.Data
 open System.Collections.Generic
 open System.IO
 open System
+open Logging
 
 // "2020-06-02T09:37:21"; "DUS51-C1";     "780";    "1.2.3.4";  "GET";
 // dateTime               x-edge-location sc-bytes  c-ip        cs-method
@@ -30,7 +31,11 @@ open System
 // time-to-first-byte   x-edge-detailed-result-type     sc-content-type   sc-content-len  sc-range-start  sc-range-end
 // "0.869";             "OriginDnsError";               "text/html";      "507";          "-";            "-"
 
-module ParquetCsv =
+module ParquetLogs =
+
+
+  let loggerParquetLogs =
+    Logger.CreateLogger "ParquetLogs" "info" (fun _ -> DateTime.Now)
 
   type ParquetColumns =
     { DateTimeColumn: List<string>
@@ -218,6 +223,7 @@ module ParquetCsv =
     (let stream = new MemoryStream()
      let parquetWriter = createNewParquetWriter (stream)
      let rowGroup = parquetWriter.CreateRowGroup()
+     
      rowGroup.WriteColumn(DataColumn(parquetFieldMap.DateTime, parquetColumns.DateTimeColumn.ToArray()))
      rowGroup.WriteColumn(DataColumn(parquetFieldMap.EdgeLocation, parquetColumns.EdgeLocationColumn.ToArray()))
      rowGroup.WriteColumn(DataColumn(parquetFieldMap.ScBytes, parquetColumns.ScBytesColumn.ToArray()))
@@ -254,48 +260,51 @@ module ParquetCsv =
      rowGroup.WriteColumn(DataColumn(parquetFieldMap.ScContentLen, parquetColumns.ScContentLenColumn.ToArray()))
      rowGroup.WriteColumn(DataColumn(parquetFieldMap.ScRangeStart, parquetColumns.ScRangeStartColumn.ToArray()))
      rowGroup.WriteColumn(DataColumn(parquetFieldMap.ScRangeEnd, parquetColumns.ScRangeEndColumn.ToArray()))
+
      rowGroup.Dispose()
      parquetWriter.Dispose()
+
      arr <- stream.ToArray()
      stream.Dispose())
     arr
 
-  let processLogRows (rows: seq<string array>) =
+
+  let processLogRows (rows: seq<string array>): byte [] =
 
     let parquetColumns = createParquetColumns ()
 
     for row in rows do
       parquetColumns.DateTimeColumn.Add(row.[0])
-      parquetColumns.EdgeLocationColumn.Add(row.[2])
-      parquetColumns.ScBytesColumn.Add(int (row.[3]))
-      parquetColumns.CIpColumn.Add(row.[4])
-      parquetColumns.CsMethodColumn.Add(row.[5])
-      parquetColumns.CsHostColumn.Add(row.[6])
-      parquetColumns.CsUriStemColumn.Add(row.[7])
-      parquetColumns.ScStatusColumn.Add(row.[8])
-      parquetColumns.CsRefererColumn.Add(row.[9])
-      parquetColumns.CsUserAgentColumn.Add(row.[10])
-      parquetColumns.CsUriQueryColumn.Add(row.[11])
-      parquetColumns.CsCookieColumn.Add(row.[12])
-      parquetColumns.XEdgeResultTypeColumn.Add(row.[13])
-      parquetColumns.XEdgeRequestIdColumn.Add(row.[14])
-      parquetColumns.XHostHeaderColumn.Add(row.[15])
-      parquetColumns.CsProtocolColumn.Add(row.[16])
-      parquetColumns.CsBytesColumn.Add(int (row.[17]))
-      parquetColumns.TimeTakenColumn.Add(row.[18])
-      parquetColumns.XForwardedForColumn.Add(row.[19])
-      parquetColumns.SslProtocolColumn.Add(row.[20])
-      parquetColumns.SslCipherColumn.Add(row.[21])
-      parquetColumns.XEdgeResponseResultTypeColumn.Add(row.[22])
-      parquetColumns.CsProtocolVersionColumn.Add(row.[23])
-      parquetColumns.FleStatusColumn.Add(row.[24])
-      parquetColumns.FleEncryptedFieldsColumn.Add(row.[25])
-      parquetColumns.CPortColumn.Add(row.[26])
-      parquetColumns.TimeToFirstByteColumn.Add(row.[27])
-      parquetColumns.XEdgeDetailedResultTypeColumn.Add(row.[28])
-      parquetColumns.ScContentTypeColumn.Add(row.[29])
-      parquetColumns.ScContentLenColumn.Add(int (row.[30]))
-      parquetColumns.ScRangeStartColumn.Add(row.[31])
-      parquetColumns.ScRangeEndColumn.Add(row.[32])
+      parquetColumns.EdgeLocationColumn.Add(row.[1])
+      parquetColumns.ScBytesColumn.Add(Utils.parseInt (row.[2]) |> Option.defaultValue 0)
+      parquetColumns.CIpColumn.Add(row.[3])
+      parquetColumns.CsMethodColumn.Add(row.[4])
+      parquetColumns.CsHostColumn.Add(row.[5])
+      parquetColumns.CsUriStemColumn.Add(row.[6])
+      parquetColumns.ScStatusColumn.Add(row.[7])
+      parquetColumns.CsRefererColumn.Add(row.[8])
+      parquetColumns.CsUserAgentColumn.Add(row.[9])
+      parquetColumns.CsUriQueryColumn.Add(row.[10])
+      parquetColumns.CsCookieColumn.Add(row.[11])
+      parquetColumns.XEdgeResultTypeColumn.Add(row.[12])
+      parquetColumns.XEdgeRequestIdColumn.Add(row.[13])
+      parquetColumns.XHostHeaderColumn.Add(row.[14])
+      parquetColumns.CsProtocolColumn.Add(row.[15])
+      parquetColumns.CsBytesColumn.Add(Utils.parseInt (row.[16]) |> Option.defaultValue 0)
+      parquetColumns.TimeTakenColumn.Add(row.[17])
+      parquetColumns.XForwardedForColumn.Add(row.[18])
+      parquetColumns.SslProtocolColumn.Add(row.[19])
+      parquetColumns.SslCipherColumn.Add(row.[20])
+      parquetColumns.XEdgeResponseResultTypeColumn.Add(row.[21])
+      parquetColumns.CsProtocolVersionColumn.Add(row.[22])
+      parquetColumns.FleStatusColumn.Add(row.[23])
+      parquetColumns.FleEncryptedFieldsColumn.Add(row.[24])
+      parquetColumns.CPortColumn.Add(row.[25])
+      parquetColumns.TimeToFirstByteColumn.Add(row.[26])
+      parquetColumns.XEdgeDetailedResultTypeColumn.Add(row.[27])
+      parquetColumns.ScContentTypeColumn.Add(row.[28])
+      parquetColumns.ScContentLenColumn.Add(Utils.parseInt (row.[29]) |> Option.defaultValue 0)
+      parquetColumns.ScRangeStartColumn.Add(row.[30])
+      parquetColumns.ScRangeEndColumn.Add(row.[31])
 
     fillParquetColumns parquetColumns

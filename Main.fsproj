@@ -10,7 +10,8 @@
   <ItemGroup>
     <Compile Include="Logging.fs" />
     <Compile Include="FileState.fs" />
-    <Compile Include="Parquet.fs" />
+    <Compile Include="Utils.fs" />
+    <Compile Include="ParquetLogs.fs" />
     <Compile Include="AwsUtils.fs" />
     <Compile Include="S3v2.fs" />
     <Compile Include="Cli.fs" />
