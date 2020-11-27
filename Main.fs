@@ -115,8 +115,6 @@ module Main =
   let startsWithHash (s: string) = startsWith '#' s
 
   let processLine (line: string array) =
-    loggerMain.LogInfo
-    <| sprintf "Number of lines %A" line
     Array.concat [| [| (sprintf "%sT%s" line.[0] line.[1]) |]
                     line.[2..] |]
 
@@ -130,8 +128,26 @@ module Main =
 
     let parquetBytes = ParquetLogs.processLogRows lines
     File.WriteAllBytes((sprintf "%s.parquet" mergedFile), parquetBytes)
-    loggerMain.LogInfo <| sprintf "%A" lines
-    ()
+
+  let doUploadParquetFile (s3v2: S3v2) bucket localFolder month =
+    let parquetFile =
+      sprintf "%s/merged/%s.parquet" localFolder month
+
+    let ret =
+      s3v2.PutS3ObjectBytes
+        bucket
+        (sprintf "dwh/web-logs/month=%s/%s.parquet" month month)
+        "application/octet-stream"
+        (File.ReadAllBytes(parquetFile))
+
+    match ret with
+    | Ok (S3PutSuccess k) ->
+        loggerMain.LogInfo
+        <| sprintf "Successfully uploaded Parquet file: %s" k
+    | err ->
+        loggerMain.LogError
+        <| sprintf "Uploading Parquet file has failed: %A" err
+
 
   let whatToExecute state fileStates pattern s3v2 bucket s3folder localFolder month =
     match state with
@@ -140,16 +156,23 @@ module Main =
         doDownloadFiles fileStates s3v2 localFolder bucket
         doUnzipFiles fileStates localFolder
         doMergeFiles fileStates month localFolder
+        doConvertFileToParquet localFolder month
+        doUploadParquetFile s3v2 bucket localFolder month
     | Downloaded ->
         doListFiles fileStates pattern s3v2 bucket s3folder state
         doUnzipFiles fileStates localFolder
         doMergeFiles fileStates month localFolder
+        doConvertFileToParquet localFolder month
+        doUploadParquetFile s3v2 bucket localFolder month
     | Unzipped ->
         doListFiles fileStates pattern s3v2 bucket s3folder state
         doMergeFiles fileStates month localFolder
-    | Merged ->
-        doListFiles fileStates pattern s3v2 bucket s3folder state
         doConvertFileToParquet localFolder month
+        doUploadParquetFile s3v2 bucket localFolder month
+    | Merged ->
+        doConvertFileToParquet localFolder month
+        doUploadParquetFile s3v2 bucket localFolder month
+    | Converted -> doUploadParquetFile s3v2 bucket localFolder month
     | _ -> Environment.Exit 1
 
 
@@ -172,7 +195,7 @@ module Main =
       RegionEndpoint.GetBySystemName(awsRegion)
 
     let config =
-      AmazonS3Config(RegionEndpoint = region, Timeout = Nullable(TimeSpan.FromMilliseconds(1500.0)))
+      AmazonS3Config(RegionEndpoint = region, Timeout = Nullable(TimeSpan.FromMilliseconds(300000.0)))
 
     let bucket = "logs.l1x.be"
     let s3folder = "dev.l1x.be"

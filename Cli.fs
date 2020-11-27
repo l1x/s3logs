@@ -20,6 +20,7 @@ module Cli =
     | "downloaded" -> Downloaded
     | "unzipped" -> Unzipped
     | "merged" -> Merged
+    | "converted" -> Converted
     | _ -> ParsingError
 
   let isValidMonth s =
@@ -113,7 +114,8 @@ module Cli =
             | NotStarted
             | Downloaded
             | Unzipped
-            | Merged ->
+            | Merged
+            | Converted ->
                 parseCommandLineRec
                   xss
                   { optionsSoFar with

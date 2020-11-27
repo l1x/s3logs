@@ -31,4 +31,4 @@ CREATE EXTERNAL TABLE IF NOT EXISTS l1x_logs.dev (
   `ScContentLen` INTEGER,
   `ScRangeStart` STRING,
   `ScRangeEnd` STRING
-) PARTITIONED BY (`month` string) STORED AS PARQUET LOCATION 's3://logs.l1x.be/dwh/' -- MSCK REPAIR TABLE l1x_logs.dev;
+) PARTITIONED BY (`month` string) STORED AS PARQUET LOCATION 's3://logs.l1x.be/dwh/web-logs/' -- MSCK REPAIR TABLE l1x_logs.dev;

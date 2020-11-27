@@ -6,7 +6,11 @@ type FileState =
   | Downloaded
   | Unzipped
   | Merged
-  | Uploaded
-  | Done
+  | Converted
   | FileStateError of err: string
   | ParsingError
+
+
+// type ParquetFileState =
+//   | Uploaded
+//   | AvailableInAthena
