@@ -45,7 +45,7 @@ module Main =
     try
       let fileBytesMaybe = s3v2.GetS3ObjectBytes bucket key
       match fileBytesMaybe with
-      | Ok (S3GetSuccess (k, v)) ->
+      | Ok (S3GetBytesSuccess (k, v)) ->
           let fileName =
             sprintf "%s/dl/%s" localFolder (k.Replace('/', '_'))
 
