@@ -195,7 +195,7 @@ module Main =
       RegionEndpoint.GetBySystemName(awsRegion)
 
     let config =
-      AmazonS3Config(RegionEndpoint = region, Timeout = Nullable(TimeSpan.FromMilliseconds(300000.0)))
+      AmazonS3Config(RegionEndpoint = region, Timeout = Nullable(TimeSpan.FromMilliseconds(300z000.0)))
 
     let bucket = "logs.l1x.be"
     let s3folder = "dev.l1x.be"

@@ -6,9 +6,9 @@ SELECT
       ) / 600
     ) * 600
   ) AS ten_minute_window,
-  COUNT(*) AS event_count
+  COUNT(1) AS event_count
 FROM
-  "l1x_logs"."dev"
+  dwh.web_logs
 WHERE
   DATE_PARSE("datetime", '%Y-%m-%dT%H:%i:%S') > DATE_PARSE('2020-10-30', '%Y-%m-%d')
 GROUP BY
