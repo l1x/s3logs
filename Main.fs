@@ -21,15 +21,29 @@ module Main =
     Logger.CreateLogger "Main" "info" (fun _ -> DateTime.Now)
 
 
-  let listFiles (s3v2: S3v2) (bucket: string) (folder: string) =
-    loggerMain.LogInfo
-    <| sprintf "%s %s" bucket folder
-    let fileListMaybe = s3v2.ListS3Objects bucket folder
+  let rec listFilesInternal (acc) (maxKeys) (nextToken) (s3v2: S3v2) (bucket: string) (folder: string) =
+    let fileListMaybe =
+      s3v2.ListS3Objects maxKeys nextToken bucket folder
+
     match fileListMaybe with
-    | Ok (S3ListSuccess (p, l)) -> Some(List.map (fun (x: Model.S3Object) -> x.Key) l)
+    | Ok (S3ListSuccess (prefix, true, nextToken, l)) ->
+        listFilesInternal (List.concat [ l; acc ]) maxKeys (Some nextToken) s3v2 bucket folder
+    | Ok (S3ListSuccess (prefix, false, _, l)) ->
+        Some(List.map (fun (x: Model.S3Object) -> x.Key) (List.concat [ l; acc ]))
     | Error err ->
         loggerMain.LogInfo <| sprintf "%A" err
         None
+
+
+  let listFiles (s3v2: S3v2) (bucket: string) (folder: string) =
+    loggerMain.LogInfo
+    <| sprintf "%s %s" bucket folder
+    listFilesInternal [] (Some 100) None s3v2 bucket folder
+
+
+  let doPrintCount (fileStates: Dictionary<string, FileState>) =
+    loggerMain.LogInfo
+    <| sprintf "%A" (fileStates.Count)
 
 
   let doListFiles (fileStates: Dictionary<string, FileState>) pattern s3v2 bucket folder startingState =
@@ -39,10 +53,13 @@ module Main =
     |> Option.defaultWith (fun _ ->
          loggerMain.LogError "Could not list files"
          Environment.Exit 1)
+    doPrintCount fileStates
 
 
   let downloadFile (s3v2: S3v2) (localFolder: string) (bucket: string) (key: string) =
     try
+      loggerMain.LogInfo
+      <| sprintf "Downloading: %s" key
       let fileBytesMaybe = s3v2.GetS3ObjectBytes bucket key
       match fileBytesMaybe with
       | Ok (S3GetBytesSuccess (k, v)) ->
@@ -195,7 +212,7 @@ module Main =
       RegionEndpoint.GetBySystemName(awsRegion)
 
     let config =
-      AmazonS3Config(RegionEndpoint = region, Timeout = Nullable(TimeSpan.FromMilliseconds(300z000.0)))
+      AmazonS3Config(RegionEndpoint = region, Timeout = Nullable(TimeSpan.FromMilliseconds(300000.0)))
 
     let bucket = "logs.l1x.be"
     let s3folder = "dev.l1x.be"

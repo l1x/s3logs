@@ -20,3 +20,8 @@ module Utils =
   let parseSingle = tryParseWith System.Single.TryParse
   let parseDouble = tryParseWith System.Double.TryParse
   let parseGuid = tryParseWith System.Guid.TryParse
+
+
+  let tee (log: string -> unit) x =
+    log <| sprintf "%A" x
+    x

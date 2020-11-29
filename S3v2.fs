@@ -39,7 +39,7 @@ module S3v2 =
 
 
   /// S3ListReturn
-  type S3ListSuccess = S3ListSuccess of prefix: string * objects: List<S3Object>
+  type S3ListSuccess = S3ListSuccess of prefix: string * isTruncated: bool * nextToken: string * objects: List<S3Object>
 
   type S3ListReturn = Result<S3ListSuccess, S3ReadError>
 
@@ -203,14 +203,22 @@ module S3v2 =
     //  READ - LIST - ASYNC
     //
 
-    member this.ListS3ObjectsAsync (bucket: string) (prefix: string): Async<S3ListReturn> =
-      // (maxKeys: int option) (continuationToken: string option) - TODO PAGINATE
+    member this.ListS3ObjectsAsync (maxKeys: int option)
+                                   (continuationToken: string option)
+                                   (bucket: string)
+                                   (prefix: string)
+                                   : Async<S3ListReturn> =
       async {
         try
           let! ct = Async.CancellationToken
 
           let request =
-            ListObjectsV2Request(BucketName = bucket, Prefix = prefix)
+            match maxKeys, continuationToken with
+            | Some mk, Some ct ->
+                ListObjectsV2Request(BucketName = bucket, Prefix = prefix, MaxKeys = mk, ContinuationToken = ct)
+            | Some mk, None -> ListObjectsV2Request(BucketName = bucket, Prefix = prefix, MaxKeys = mk)
+            | None, Some ct -> ListObjectsV2Request(BucketName = bucket, Prefix = prefix, ContinuationToken = ct)
+            | None, None -> ListObjectsV2Request(BucketName = bucket, Prefix = prefix)
 
           let task =
             awsS3Client.ListObjectsV2Async(request, ct)
@@ -218,7 +226,10 @@ module S3v2 =
           let! result = task |> Async.AwaitTask
 
           match result.HttpStatusCode with
-          | HttpStatusCode.OK -> return Ok(S3ListSuccess(prefix, List.ofSeq result.S3Objects))
+          | HttpStatusCode.OK ->
+              return Ok
+                       (S3ListSuccess
+                         (prefix, result.IsTruncated, result.NextContinuationToken, List.ofSeq result.S3Objects))
           | httpStatus -> return Error(S3ReadException(prefix, false, (Some(int httpStatus)), None))
 
         with ex -> return Error(handleReadException prefix ex)
@@ -228,9 +239,9 @@ module S3v2 =
     //  READ - LIST - SYNC
     //
 
-    member this.ListS3Objects (bucket: string) (prefix: string): S3ListReturn =
-      // (maxKeys: int option) (continuationToken: string option) - TODO PAGINATE
-      this.ListS3ObjectsAsync bucket prefix
+    member this.ListS3Objects (maxKeys: int option) (continuationToken: string option) (bucket: string) (prefix: string)
+                              : S3ListReturn =
+      this.ListS3ObjectsAsync maxKeys continuationToken bucket prefix
       |> Async.RunSynchronously
 
 
