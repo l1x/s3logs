@@ -13,12 +13,14 @@ open System.Text.RegularExpressions
 open System.IO
 open System.IO.Compression
 open System.Collections.Generic
+open BenchmarkDotNet.Running
+
 
 module Main =
 
 
   let loggerMain =
-    Logger.CreateLogger "Main" "info" (fun _ -> DateTime.Now)
+    Logger.CreateLogger "Main" "info" (fun () -> DateTime.Now)
 
 
   let rec listFilesInternal (acc) (maxKeys) (nextToken) (s3v2: S3v2) (bucket: string) (folder: string) =
@@ -218,22 +220,24 @@ module Main =
     let s3folder = "dev.l1x.be"
     let localFolder = "tmp"
 
-    match credentials with
-    | Some creds ->
+    // match credentials with
+    // | Some creds ->
 
-        let client = new AmazonS3Client(creds, config)
-        let s3v2 = S3v2(client, loggerMain.LogInfo)
-        let pattern = sprintf "^.*%s.*$" month
-        let fileStates = new Dictionary<string, FileState>()
+    //     let client = new AmazonS3Client(creds, config)
+    //     let s3v2 = S3v2(client, loggerMain.LogInfo)
+    //     let pattern = sprintf "^.*%s.*$" month
+    //     let fileStates = new Dictionary<string, FileState>()
 
-        whatToExecute startingState fileStates pattern s3v2 bucket s3folder localFolder month
+    //     whatToExecute startingState fileStates pattern s3v2 bucket s3folder localFolder month
 
-        loggerMain.LogInfo <| sprintf "%A" fileStates
+    //     loggerMain.LogInfo <| sprintf "%A" fileStates
 
-        // convert files to parquet
-        // upload to partition
-        do ()
+    //     // convert files to parquet
+    //     // upload to partition
+    //     do ()
 
-    | None -> Environment.Exit 1
+    // | None -> Environment.Exit 1
+
+    BenchmarkRunner.Run<Bm.LengthBench>() |> ignore
 
     0
