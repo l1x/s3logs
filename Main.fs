@@ -79,10 +79,19 @@ module Main =
 
 
   let doDownloadFiles (fileStates: Dictionary<string, FileState>) (s3v2: S3v2) (localFolder: string) (bucket: string) =
-    for fileEntry in fileStates do
-      match (downloadFile s3v2 localFolder bucket fileEntry.Key) with
-      | Ok _x -> fileStates.[fileEntry.Key] <- Downloaded
-      | Error err -> fileStates.[fileEntry.Key] <- (FileStateError err)
+
+    let asynTaskList =
+      fileStates
+      |> Seq.map (fun fileEntry ->
+           async {
+             match (downloadFile s3v2 localFolder bucket fileEntry.Key) with
+             | Ok _x -> return (fileEntry.Key, Downloaded)
+             | Error err -> return (fileEntry.Key, (FileStateError err))
+           })
+
+    Async.Parallel(asynTaskList, 10)
+    |> Async.RunSynchronously
+    |> Seq.iter (fun (k, v) -> fileStates.[k] <- v)
 
 
   let doUnzipFiles (fileStates: Dictionary<string, FileState>) localFolder =
@@ -220,24 +229,24 @@ module Main =
     let s3folder = "dev.l1x.be"
     let localFolder = "tmp"
 
-    // match credentials with
-    // | Some creds ->
+    match credentials with
+    | Some creds ->
 
-    //     let client = new AmazonS3Client(creds, config)
-    //     let s3v2 = S3v2(client, loggerMain.LogInfo)
-    //     let pattern = sprintf "^.*%s.*$" month
-    //     let fileStates = new Dictionary<string, FileState>()
+        let client = new AmazonS3Client(creds, config)
+        let s3v2 = S3v2(client, loggerMain.LogInfo)
+        let pattern = sprintf "^.*%s.*$" month
+        let fileStates = new Dictionary<string, FileState>()
 
-    //     whatToExecute startingState fileStates pattern s3v2 bucket s3folder localFolder month
+        whatToExecute startingState fileStates pattern s3v2 bucket s3folder localFolder month
 
-    //     loggerMain.LogInfo <| sprintf "%A" fileStates
+        loggerMain.LogInfo <| sprintf "%A" fileStates
 
-    //     // convert files to parquet
-    //     // upload to partition
-    //     do ()
+        // convert files to parquet
+        // upload to partition
+        do ()
 
-    // | None -> Environment.Exit 1
+    | None -> Environment.Exit 1
 
-    BenchmarkRunner.Run<Bm.LengthBench>() |> ignore
+    // BenchmarkRunner.Run<Bm.LengthBench>() |> ignore
 
     0
