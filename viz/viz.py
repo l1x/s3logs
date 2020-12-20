@@ -76,7 +76,7 @@ def visitor_heatmap(df, scale='lin'):
   size_lin = dfa.Cnt.values
   size_log_2 = np.log(dfa.Cnt.values) / np.log(2)
 
-  size = (size_lin / 150) if scale=='lin' else size_log_2
+  size = size_lin if scale=='lin' else size_log_2
 
   fig = go.Figure(
     data=go.Scattergl(
@@ -136,17 +136,19 @@ def get_reports(months_raw):
 
   for df in months_raw:
     print(df.shape)
-    df_posts = df[df['CsUriStem'].str.contains('posts')].copy()
-    df_posts['CsUriStreamClean']  = df_posts['CsUriStem'].apply(lambda s: s.rstrip('/'))
-    df_posts['IATA'] = df_posts.apply(lambda x: x['EdgeLocation'][0:3],axis=1)
-    df_posts['DateTime'] =  pd.to_datetime(df_posts['DateTime'],infer_datetime_format=True)
-    df_posts['hour'] = df_posts['DateTime'].dt.floor('H').dt.hour
-    df_posts['day'] = df_posts['DateTime'].dt.date
-    df_posts['ipv'] = df_posts.apply(lambda x: valid_ip_address(x['CIp']),axis=1)
-    df_posts['hcip'] = df_posts.apply(lambda x: get_siphash(x['CIp'], seed),axis=1)
-    df_ready = df_posts[
+
+    df_tmp = df.copy()
+    df_tmp['CsUriStreamClean']  = df_tmp['CsUriStem'].apply(lambda s: s.rstrip('/'))
+    df_tmp['IATA'] = df_tmp.apply(lambda x: x['EdgeLocation'][0:3],axis=1)
+    df_tmp['DateTime'] =  pd.to_datetime(df_tmp['DateTime'],infer_datetime_format=True)
+    df_tmp['hour'] = df_tmp['DateTime'].dt.floor('H').dt.hour
+    df_tmp['day'] = df_tmp['DateTime'].dt.date
+    df_tmp['ipv'] = df_tmp.apply(lambda x: valid_ip_address(x['CIp']),axis=1)
+    df_tmp['hcip'] = df_tmp.apply(lambda x: get_siphash(x['CIp'], seed),axis=1)
+    df_ready = df_tmp[
         ['DateTime', 'day','hour','IATA','CsMethod',
-        'CsUriStreamClean', 'ScStatus', 'ScBytes','CsProtocol',
+        'CsUriStreamClean', 'CsUriStem',
+        'ScStatus', 'ScBytes','CsProtocol',
         'CsProtocolVersion', 'TimeToFirstByte',
         'XEdgeDetailedResultType', 'ScContentLen',
         'SslProtocol' ,'SslCipher', 'ipv',
@@ -180,9 +182,10 @@ def get_top_referers(months_report):
   return top_referers
 
 
-def get_top_urls(months_report):
+def get_top_posts(months_report):
   top_urls = []
   for df in months_report:
+    df = df[df['CsUriStreamClean'].str.contains('posts')].copy()
     top_url = df.groupby(['CsUriStreamClean'])['CsUriStreamClean'].count().nlargest(15).to_frame()
     top_url.rename(columns={'CsUriStreamClean':'Cnt'}, errors='raise', inplace=True)
     top_url.reset_index(level=0, inplace=True)
@@ -226,13 +229,13 @@ def create_layout():
     idx += 1
 
   idx = 0
-  top_urls = []
-  top_urls.append(html.H3('Top URLs'))
-  for top_url in get_top_urls(months_report):
+  top_posts = []
+  top_posts.append(html.H3('Top Posts'))
+  for top_url in get_top_posts(months_report):
     children = []
     children.append(html.H4(s3_file_names[idx]))
     children.append(generate_table(top_url))
-    top_urls.append(html.Div(children, className='row'))
+    top_posts.append(html.Div(children, className='row'))
     idx += 1
 
   idx = 0
@@ -262,11 +265,9 @@ def create_layout():
     idx += 1
 
 
-
-
   app.layout = html.Div([
       html.Div(top_refs, className='three columns', style={'margin-top': '2em'}),
-      html.Div(top_urls, className='three columns', style={'margin-top': '2em'}),
+      html.Div(top_posts, className='three columns', style={'margin-top': '2em'}),
       html.Div(top_iatas, className='three columns', style={'margin-top': '2em'}),
       html.Div(times, className='three columns', style={'margin-top': '2em'}),
     ])
