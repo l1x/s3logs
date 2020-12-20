@@ -270,6 +270,8 @@ def create_layout():
       html.Div(top_posts, className='three columns', style={'margin-top': '2em'}),
       html.Div(top_iatas, className='three columns', style={'margin-top': '2em'}),
       html.Div(times, className='three columns', style={'margin-top': '2em'}),
+      html.Div(html.H4('The end'), className='three columns')
+      html.Div(html.H4('The end'), className='three columns')
     ])
 
 
