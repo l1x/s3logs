@@ -122,6 +122,7 @@ module Cli =
                       State = (fromStringToFileState state) }
             | _ ->
                 loggerCli.LogError(String.Format("Unsupported state: {0}", state))
+                loggerCli.LogError("Supported states: NotStarted, Downloaded, Unzipped, Merged, Converted")
                 Environment.Exit 1
                 parseCommandLineRec xss optionsSoFar // never reach
 
