@@ -223,6 +223,7 @@ module ParquetLogs =
     use stream = new MemoryStream()
 
     let parquetWriter = createNewParquetWriter (stream)
+    parquetWriter.CompressionMethod <- CompressionMethod.Gzip
     let rowGroup = parquetWriter.CreateRowGroup()
 
     rowGroup.WriteColumn(DataColumn(parquetFieldMap.DateTime, parquetColumns.DateTimeColumn.ToArray()))
