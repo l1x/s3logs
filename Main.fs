@@ -229,6 +229,20 @@ module Main =
     let s3folder = "dev.l1x.be"
     let localFolder = "tmp"
 
+    let unZippedFolder = Path.Combine(localFolder, "uz")
+    let downloadedFolder = Path.Combine(localFolder, "dl")
+    let mergedFolder = Path.Combine(localFolder, "merged")
+
+    try
+      List.iter (fun f -> Directory.CreateDirectory(f) |> ignore)
+        [ unZippedFolder
+          downloadedFolder
+          mergedFolder ]
+    with ex ->
+      loggerMain.LogError
+      <| sprintf "Could not create folder %s" ex.Message
+      Environment.Exit 1
+
     match credentials with
     | Some creds ->
 
