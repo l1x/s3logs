@@ -105,7 +105,7 @@ def visitor_heatmap(df, scale='lin'):
   return fig
 
 def get_s3_client():
-  session = boto3.Session(profile_name='li-istvan')
+  session = boto3.Session(profile_name='li-istvan', region_name='eu-west-1')
   return session.client('s3')
 
 
@@ -175,7 +175,9 @@ def get_top_referers(months_report):
   top_referers = []
   for df in months_report:
     df_ref = df[df['CsReferer'] != '-']
-    top_ref = df_ref.groupby(['CsReferer'])['CsReferer'].count().nlargest(15).to_frame()
+    filter_self = df_ref['CsReferer'].str.contains('dev\\.l1x\\.be')
+    df_ref = df_ref[~filter_self]
+    top_ref = df_ref.groupby(['CsReferer'])['CsReferer'].count().nlargest(10).to_frame()
     top_ref.rename(columns={'CsReferer':'Cnt'}, errors='raise', inplace=True)
     top_ref.reset_index(level=0, inplace=True)
     top_referers.append(top_ref)
@@ -186,7 +188,7 @@ def get_top_posts(months_report):
   top_urls = []
   for df in months_report:
     df = df[df['CsUriStreamClean'].str.contains('posts')].copy()
-    top_url = df.groupby(['CsUriStreamClean'])['CsUriStreamClean'].count().nlargest(15).to_frame()
+    top_url = df.groupby(['CsUriStreamClean'])['CsUriStreamClean'].count().nlargest(10).to_frame()
     top_url.rename(columns={'CsUriStreamClean':'Cnt'}, errors='raise', inplace=True)
     top_url.reset_index(level=0, inplace=True)
     top_urls.append(top_url)
@@ -270,7 +272,6 @@ def create_layout():
       html.Div(top_posts, className='three columns', style={'margin-top': '2em'}),
       html.Div(top_iatas, className='three columns', style={'margin-top': '2em'}),
       html.Div(times, className='three columns', style={'margin-top': '2em'}),
-      html.Div(html.H4('The end'), className='three columns')
       html.Div(html.H4('The end'), className='three columns')
     ])
 
