@@ -113,7 +113,7 @@ def get_files_on_s3():
   s3_client = get_s3_client()
   s3_objects = s3_client.list_objects_v2(
     Bucket='logs.l1x.be',
-    Prefix ='dwh/web-logs/',
+    Prefix ='dwh/web-logs/month=2021-03/',
     MaxKeys=100)
 
   return s3_objects
